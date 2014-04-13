@@ -100,6 +100,7 @@ THREE.PointerLockControls = function ( camera ) {
 		}
 
 	};
+	
 
 	document.addEventListener( 'mousemove', onMouseMove, false );
 	document.addEventListener( 'keydown', onKeyDown, false );
@@ -181,9 +182,7 @@ THREE.PointerLockControls = function ( camera ) {
 			canJump = true;
 
 		}
-		// console log the stick
 
-		console.log(WIIMOTE.getStickX1());
 
 	};
 

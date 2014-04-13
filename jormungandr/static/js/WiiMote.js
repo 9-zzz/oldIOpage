@@ -56,11 +56,11 @@ function WiiMote() {
 	me.sendToServer();
 	
 	me.getA1 = function() {
-		return (me.buttons1 & 4) > 0 ? 1 : 0;
+		return (me.buttons1 & 8) > 0 ? 1 : 0;
 	};
 
 	me.getB1 = function() {
-		return (me.buttons1 & 8) > 0 ? 1 : 0;
+		return (me.buttons1 & 4) > 0 ? 1 : 0;
 	};
 
 	me.getAccX1 = function() {
@@ -106,11 +106,11 @@ function WiiMote() {
 	};
 
 	me.getA2 = function() {
-		return (me.buttons2 & 4) > 0 ? 1 : 0;
+		return (me.buttons2 & 8) > 0 ? 1 : 0;
 	};
 
 	me.getB2 = function() {
-		return (me.buttons2 & 8) > 0 ? 1 : 0;
+		return (me.buttons2 & 4) > 0 ? 1 : 0;
 	};
 
 	me.getAccX2 = function() {
