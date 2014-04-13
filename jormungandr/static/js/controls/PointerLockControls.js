@@ -139,9 +139,12 @@ THREE.PointerLockControls = function ( camera ) {
 
 	}();
 
-	this.update = function ( delta ) {
+	this.update = function ( delta, WIIMOTE ) {
 
 		if ( scope.enabled === false ) return;
+
+	//	camera.position.x += WIIMOTE.getStickX1();
+	//	camera.position.z += WIIMOTE.getStickY1();
 
 		delta *= 0.05;
 
@@ -163,9 +166,12 @@ THREE.PointerLockControls = function ( camera ) {
 
 		}
 
-		yawObject.translateX( velocity.x );
+		// control stick dictates these vectors
+
+		yawObject.translateX( velocity.x + WIIMOTE.getStickX1() );
+		// vectors need to be changed with the Wiimote
 		yawObject.translateY( velocity.y ); 
-		yawObject.translateZ( velocity.z );
+		yawObject.translateZ( velocity.z - WIIMOTE.getStickY1() );
 
 		if ( yawObject.position.y < 10 ) {
 
@@ -175,6 +181,9 @@ THREE.PointerLockControls = function ( camera ) {
 			canJump = true;
 
 		}
+		// console log the stick
+
+		console.log(WIIMOTE.getStickX1());
 
 	};
 

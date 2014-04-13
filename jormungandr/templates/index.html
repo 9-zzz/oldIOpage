@@ -58,11 +58,12 @@ body {
 </style>
 </head>
 <body>
-<script src="js/three.min.js"></script>
-<script src="js/physi.js"></script>
-<script src="js/stats.js"></script>
-<script src="js/THREEx.KeyboardState.js"></script>
-<script src="js/controls/PointerLockControls.js"></script>
+<script src="static/js/three.min.js"></script>
+<script src="static/js/physi.js"></script>
+<script src="static/js/stats.js"></script>
+<script src="static/js/THREEx.KeyboardState.js"></script>
+<script src="static/js/WiiMote.js"></script>
+<script src="static/js/controls/PointerLockControls.js"></script>
 
 <div id="blocker">
   <div id="instructions">
@@ -75,6 +76,7 @@ body {
 
 var camera, scene, renderer, keyboard;
 var geometry, material, mesh;
+var WIIMOTE;
 
 //mesh variables
 var jworm, player1, player2, sword1, sword2;
@@ -175,6 +177,7 @@ init();
 animate();
 
 function init() {
+  WIIMOTE = new WiiMote();
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 5000 );
 
   scene = new THREE.Scene();
@@ -201,7 +204,7 @@ function init() {
   //Blender
   var loader = new THREE.JSONLoader();
 
-  loader.load( 'models/theJ2.js', function(geometry, materials){
+  loader.load( 'static/models/theJ2.js', function(geometry, materials){
 
       for(var i =0;i<materials.length;i++){
       materials[i].shading = THREE.FlatShading;
@@ -215,7 +218,7 @@ function init() {
       scene.add(jworm);
       });
 
-  loader.load( 'models/player1.js', function(geometry, materials){
+  loader.load( 'static/models/player1.js', function(geometry, materials){
 
       for(var i =0;i<materials.length;i++){
       materials[i].shading = THREE.FlatShading;
@@ -245,7 +248,7 @@ function init() {
       scene.add(player2);
       });
 
-  loader.load( 'models/sword1.js', function(geometry, materials){
+  loader.load( 'static/models/sword1.js', function(geometry, materials){
 
       for(var i =0;i<materials.length;i++){
       materials[i].shading = THREE.FlatShading;
@@ -270,7 +273,7 @@ function init() {
   var axes = new THREE.AxisHelper(10);
   scene.add( axes );
 
-  var imagePrefix = "images/spaceBG-";
+  var imagePrefix = "static/images/spaceBG-";
   var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
   var imageSuffix = ".jpg";
   var skyGeometry = new THREE.CubeGeometry( 2700, 2700, 2700 ); 
@@ -341,7 +344,7 @@ function animate() {
 
   }
 
-  controls.update( Date.now() - time );
+  controls.update( Date.now() - time, WIIMOTE );
 
   renderer.render( scene, camera );
 
