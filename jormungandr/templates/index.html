@@ -74,17 +74,19 @@ body {
 
 <script>
 
+//global
 var camera, scene, renderer, keyboard;
 var geometry, material, mesh;
 var WIIMOTE;
 
 //mesh variables
-var jworm, player1, player2, sword1, sword2;
+var ring, jworm, player1, player2, sword1, sword2, winner;
 
-var cube;//for skybox
+var cube,cube2,skybox2;//for skybox
 
 var controls,time = Date.now();
 var objects = [];
+var objects2 = [];
 var ray;
 
 var blocker = document.getElementById( 'blocker' );
@@ -178,10 +180,10 @@ animate();
 
 function init() {
   WIIMOTE = new WiiMote();
-  camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 5000 );
+  camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 14000 );
 
   scene = new THREE.Scene();
-  scene.fog = new THREE.Fog( 0xFFDBB8, 0, 4750 );
+  scene.fog = new THREE.Fog( 0xFFDBB8, 0, 9750 );
 
   var light = new THREE.DirectionalLight( 0xffffff, 1.5 );
   light.position.set( 1, 1, 1 );
@@ -204,17 +206,47 @@ function init() {
   //Blender
   var loader = new THREE.JSONLoader();
 
+loader.load( 'static/models/ring.js', function(geometry, materials){
+
+      for(var i =0;i<materials.length;i++){
+      materials[i].shading = THREE.FlatShading;
+      }
+      var material = new THREE.MeshPhongMaterial({shading: THREE.FlatShading,
+        color: 0xFFFF66});
+      ring  = new THREE.Mesh(geometry, material);
+      ring.scale.set(49, 49, 49);
+      ring.position.set(0, 0, -3000);
+      ring.rotation.x = 5;
+      scene.add(ring);
+      });
+
+  loader.load( 'static/models/win.js', function(geometry, materials){
+
+      for(var i =0;i<materials.length;i++){
+      materials[i].shading = THREE.FlatShading;
+      }
+      var material = new THREE.MeshFaceMaterial({shading: THREE.FlatShading});
+      winner  = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
+      winner.scale.set(4, 4, 4);
+      //winner.position.set(0, -20, -3000);
+      //winner.rotation.x = 0.25;
+      //objects.push(winner);
+      });
+
+
   loader.load( 'static/models/jorm.js', function(geometry, materials){
 
       for(var i =0;i<materials.length;i++){
       materials[i].shading = THREE.FlatShading;
       }
       var material = new THREE.MeshFaceMaterial({shading: THREE.FlatShading});
-      var  jworm  = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
+      jworm  = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
       //  var  u = new THREE.Mesh(geometry, materials);
-      jworm.scale.set(39, 39, 39);
-      jworm.position.set(0, 500, -850);
+      jworm.scale.set(19, 19, 19);
+      jworm.position.set(0, -20, -3000);
       jworm.rotation.x = 0.25;
+      //jworm.add(ring);
+      objects.push(jworm);
       scene.add(jworm);
       });
 
@@ -261,6 +293,28 @@ function init() {
       scene.add(sword1);
       });
 
+  var Geometryy = new THREE.CubeGeometry( 70, 70, 70 ); 
+  var Materiall = new THREE.MeshNormalMaterial();
+  var cuboid = new THREE.Mesh(Geometryy, Materiall);
+  var cuboid2 = new THREE.Mesh(Geometryy, Materiall);
+  var cuboid3 = new THREE.Mesh(Geometryy, Materiall);
+  objects.push(cuboid);
+  cuboid.position.y = 300;
+  cuboid2.position.y = 100;
+  cuboid2.position.z = 300;
+  cuboid3.position.y = 700;
+  objects.push(cuboid2);
+  objects.push(cuboid3);
+  scene.add(cuboid);
+  scene.add(cuboid2);
+  scene.add(cuboid3);
+
+  var Geometryy2 = new THREE.CubeGeometry( 70, 200, 70 ); 
+  var cuboid4 = new THREE.Mesh(Geometryy2, Materiall);
+  cuboid4.position.z = -300;
+  objects2.push(cuboid4);
+  scene.add(cuboid4);
+
 
   renderer = new THREE.WebGLRenderer();
   renderer.setClearColor( 0xFFFFFF);
@@ -270,25 +324,37 @@ function init() {
   window.addEventListener( 'resize', onWindowResize, false );
 
   //SKYBOX CODE
-  var axes = new THREE.AxisHelper(10);
-  scene.add( axes );
-
   var imagePrefix = "static/images/spaceBG-";
+  var imagePrefix2 = "static/images/spaceBG2-";
   var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
+  var directions2  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
   var imageSuffix = ".jpg";
-  var skyGeometry = new THREE.CubeGeometry( 2700, 2700, 2700 ); 
+  var imageSuffix2 = ".jpg";
+  var skyGeometry = new THREE.CubeGeometry( 10700, 10700, 10700 ); 
+  var skyGeometry2 = new THREE.CubeGeometry( 1700, 1700, 1700 ); 
 
   var materialArray = [];
+  var materialArray2 = [];
   for (var i = 0; i < 6; i++)
     materialArray.push( new THREE.MeshBasicMaterial({
 map: THREE.ImageUtils.loadTexture( imagePrefix + directions[i] + imageSuffix ),
 side: THREE.BackSide
 }));
+
+  for (var i = 0; i < 6; i++)
+    materialArray2.push( new THREE.MeshBasicMaterial({
+map: THREE.ImageUtils.loadTexture( imagePrefix2 + directions2[i] + imageSuffix2 ),
+side: THREE.BackSide
+}));
+
 var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
+var skyMaterial2 = new THREE.MeshFaceMaterial( materialArray2 );
+
 var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
+var skyBox2 = new THREE.Mesh( skyGeometry2, skyMaterial2 );
+
 scene.add( skyBox );
-
-
+scene.add( skyBox2 );
 
 }//endinit
 
@@ -305,8 +371,17 @@ function animate() {
 
   requestAnimationFrame( animate );
 
+<<<<<<< HEAD
+  ring.rotation.y += 0.01;
+
+  if( keyboard.pressed("T")){ camera.add(sword1);
+    sword1.position.z = camera.position.z - 10;
+    sword1.position.x = camera.position.x - 6;
+  }
+=======
   sword1.position.z = camera.position.z - 20;
   sword1.position.x = camera.position.x - 3;
+>>>>>>> c9725cb22ea1847f23f332585da5b0cf08914a42
 
   if( WIIMOTE.getU1()){ camera.add(sword1);
     sword1.position.z = camera.position.z - 20;
@@ -336,9 +411,31 @@ function animate() {
 
     var distance = intersections[ 0 ].distance;
 
-    if ( distance > 0 && distance < 10 ) {
+    if ( distance > 0 && distance < 90 ) {
 
       controls.isOnObject( true );
+
+      jworm.position.z += 1;
+      jworm.rotation.z += 0.001;
+      ring.position.z += 1; 
+
+    }
+
+  }
+  //------------------------------------------
+  var intersections2 = ray.intersectObjects( objects2 );
+
+  if ( intersections2.length > 0 ) {
+
+    var distance2 = intersections2[ 0 ].distance;
+
+    if ( distance2 > 0 && distance2 < 90 ) {
+
+      controls.isOnObject( true );
+
+      player1.add(winner);
+      winner.position.y = 10;
+      winner.rotation.y += 9992341;
 
     }
 
