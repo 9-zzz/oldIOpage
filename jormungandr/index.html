@@ -61,10 +61,10 @@ body {
 <script src="js/three.min.js"></script>
 <script src="js/physi.js"></script>
 <script src="js/stats.js"></script>
+<script src="js/THREEx.KeyboardState.js"></script>
 <script src="js/controls/PointerLockControls.js"></script>
 
 <div id="blocker">
-
   <div id="instructions">
     <span style="font-size:42px">JORMUNGANDR</span>
     <br />
@@ -73,10 +73,12 @@ body {
 
 <script>
 
-var camera, scene, renderer;
+var camera, scene, renderer, keyboard;
 var geometry, material, mesh;
+
 //mesh variables
 var jworm, player1, sword1;
+
 var controls,time = Date.now();
 var objects = [];
 var ray;
@@ -187,6 +189,9 @@ function init() {
   controls = new THREE.PointerLockControls( camera );
   scene.add( controls.getObject() );
 
+  //keyboard
+  keyboard = new THREEx.KeyboardState();
+
   ray = new THREE.Raycaster();
   ray.ray.direction.set( 0, -1, 0 );
 
@@ -228,6 +233,7 @@ function init() {
       sword1 = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
       sword1.scale.set(2, 2, 2);
       sword1.position.set(0, -5, 195);
+      sword1.rotation.x = -1;
       scene.add(sword1);
       });
 
@@ -257,7 +263,13 @@ function animate() {
 
   requestAnimationFrame( animate );
 
-  sword1.rotation.z += 0.01;
+  if( keyboard.pressed("T") ) camera.add(sword1);
+
+  sword1.position.z = camera.position.z - 10;
+  sword1.position.x = camera.position.x - 3;
+
+  if( keyboard.pressed("Q") ) sword1.position.z = sword1.position.z - 5;
+
 
   controls.isOnObject( false );
 
