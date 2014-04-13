@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>New Clean Slate</title>
+<style>
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background-color: #ffffff;
+  margin: 0;
+  overflow: hidden;
+  font-family: arial;
+}
+
+#blocker {
+
+  position: absolute;
+
+  width: 100%;
+  height: 100%;
+
+  background-color: rgba(0,0,0,0.5);
+
+}
+
+#instructions {
+
+  width: 100%;
+  height: 100%;
+
+  display: -webkit-box;
+  display: -moz-box;
+  display: box;
+
+  -webkit-box-orient: horizontal;
+  -moz-box-orient: horizontal;
+  box-orient: horizontal;
+
+  -webkit-box-pack: center;
+  -moz-box-pack: center;
+  box-pack: center;
+
+  -webkit-box-align: center;
+  -moz-box-align: center;
+  box-align: center;
+
+  color: #ffffff;
+  text-align: center;
+
+  cursor: pointer;
+
+}
+</style>
+</head>
+
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<Link rel=stylesheet href="css/base.css"/>
+</head>
+<body>
+<script src="js/three.min.js"></script>
+<script src="js/Detector.js"></script>
+<script src="js/Stats.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/THREEx.KeyboardState.js"></script>
+<script src="js/THREEx.FullScreen.js"></script>
+<script src="js/THREEx.WindowResize.js"></script>
+<script src="js/controls/PointerLockControls.js"></script>
+<!-- jQuery code to display an information button and box when clicked. -->
+<script src="js/jquery-1.9.1.js"></script>
+<script src="js/jquery-ui.js"></script>
+<link rel=stylesheet href="css/jquery-ui.css" />
+<link rel=stylesheet href="css/info.css"/>
+<script src="js/info.js"></script>
+<div id="infoButton"></div>
+<div id="infoBox" title="Help/Info">
+  <img src="http://i.imgur.com/HWIvMOo.png?1" alt="Controls" width="570" height="300">
+  <br>Plus Other Controls:'space' to get big, 'zero-0' to spin platform</br>
+</div>
+<!-- ------------------------------------------------------------ -->
+<div id="ThreeJS" style="z-index: 1; position: absolute; left:0px; top:0px"></div><!--THIS-001-->
+<script>
+// Set up the scene, camera, and renderer as global variables.
+var container, scene, camera, renderer, controls, stats;
+var keyboard = new THREEx.KeyboardState();
+var time = Date.now();
+var clock = new THREE.Clock();
+var objects [];
+var ray;
+
+
+
+init();//initialization
+animate();//animating LOOP game LOOP
+// Sets up the scene.
+function init() {
+
+  scene = new THREE.Scene();
+  // CAMERA //
+  // set the view size in pixels (custom or according to window size)
+  // var SCREEN_WIDTH = 400, SCREEN_HEIGHT = 300;
+  var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight; 
+  // camera attributes
+  var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
+  camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
+  scene.add(camera);
+  camera.position.set(-130,130,-50);
+
+  // RENDERER //
+  // create and start the renderer; choose antialias setting.
+  if ( Detector.webgl )
+    renderer = new THREE.WebGLRenderer( {antialias:true} );
+  else
+    renderer = new THREE.CanvasRenderer(); 
+  renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+  // attach div element to variable to contain the renderer
+  container = document.getElementById( 'ThreeJS' );//THIS-001
+  // alternatively: to create the div at runtime, use:
+  //   container = document.createElement( 'div' );
+  //    document.body.appendChild( container );
+  // attach renderer to the container div
+  container.appendChild( renderer.domElement );
+
+  // EVENTS //
+
+  // automatically resize renderer
+  THREEx.WindowResize(renderer, camera);
+  THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
+
+  // Add OrbitControls so that we can pan around with the mouse.
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  //FPS thing // displays current and past frames per second attained by scene
+  stats = new Stats();
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.bottom = '0px';
+  stats.domElement.style.zIndex = 100;
+  container.appendChild( stats.domElement );
+
+  // Set the background color of the scene.
+  renderer.setClearColorHex(0x000000, 1);
+
+  // create a light
+  var light = new THREE.PointLight(0xffffff);
+  light.position.set(0,210,0);
+  light.intensity = 1;
+  scene.add(light);
+
+  //var ambientLight = new THREE.AmbientLight(0x000908);
+  //scene.add(ambientLight);
+
+  // FLOOR
+  var floorTexture = new THREE.ImageUtils.loadTexture( 'images/floortile.png' );
+  floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
+  floorTexture.repeat.set( 10, 10 );
+  var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
+  var floorGeometry = new THREE.PlaneGeometry(250, 250, 10, 10);
+  var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.position.y = -0.5;
+  floor.rotation.x = Math.PI / 2;
+  floor.position.y = -14.5;
+  scene.add(floor);
+
+  // SKY //
+  // recommend either a skybox or fog effect (can't use both at the same time) 
+  // without one of these, the scene's background color is determined by webpage background
+  // make sure the camera's "far" value is large enough so that it will render the skyBox!
+  var skyBoxGeometry = new THREE.CubeGeometry( 10000, 10000, 10000 );
+  // BackSide: render faces from inside of the cube, instead of from outside (default).
+  var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.BackSide } );
+  var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
+  scene.add(skyBox);
+
+  // fog must be added to scene before first render
+  //scene.fog = new THREE.FogExp2( 0x9999ff, 0.00025 );
+
+  //CUSTOm 3d blender  Load in the mesh and add it to the scene.
+  var loader = new THREE.JSONLoader();
+  loader.load( "models/ref.js", function(geometry){
+      var material = new THREE.MeshBasicMaterial({color: 0xFF0000});
+      mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(-60,0,0);
+      scene.add(mesh);
+      });
+
+  // GEOMETRY //
+  // most objects displayed are a "mesh":
+  //  a collection of points ("geometry") and
+  //  a set of surface parameters ("material")  
+  // Sphere parameters: radius, segments along width, segments along height
+  var spriteMaterial = new THREE.SpriteMaterial( 
+      { 
+map: new THREE.ImageUtils.loadTexture( 'images/glow.png' ), 
+useScreenCoordinates: false, alignment: THREE.SpriteAlignment.center,
+color: 0xFF0000, transparent: false, blending: THREE.AdditiveBlending
+});
+var sprite = new THREE.Sprite( spriteMaterial );
+sprite.scale.set(20, 20, 1.0);
+
+var sphereGeometry1 = new THREE.SphereGeometry( 4, 16, 9 ); 
+//   (don't forget to add (at least one) light!)
+var sphereMaterial1 = new THREE.MeshBasicMaterial( {color: 0xf11A90} ); 
+var sphere1 = new THREE.Mesh(sphereGeometry1, sphereMaterial1);
+sphere1.position.set(23, 7, 0);
+sphere1.add(sprite);
+scene.add(sphere1);
+//for sprite light
+
+// Sphere parameters: radius, segments along width, segments along height
+var sphereGeom =  new THREE.SphereGeometry( 50, 32, 16 );
+// Basic wireframe materials.
+var darkMaterial = new THREE.MeshBasicMaterial( { color: 0x000088 } );
+var wireframeMaterial = new THREE.MeshBasicMaterial( { color: 0x00ee00, wireframe: true, transparent: true } ); 
+var multiMaterial = [ darkMaterial, wireframeMaterial ]; 
+// Creating three spheres to illustrate wireframes.
+var sphere = new THREE.Mesh( sphereGeom.clone(), wireframeMaterial );
+sphere.position.set(-150, 50, 0);
+scene.add( sphere );
+
+}//###END init
+
+
+// Renders the scene and updates the render as needed.
+function animate()
+{
+  requestAnimationFrame(animate);
+  render();
+  update();
+}
+
+function update()
+{
+  var delta = clock.getDelta(); // seconds.
+  var moveDistance = 250 * delta; // 200 pixels per second
+  var rotateAngle = Math.PI / 0.75 * delta;   // pi/2 radians (90 degrees) per second
+
+
+  // local coordinates
+  // local transformations
+  // move forwards/backwards/left/right
+  if ( keyboard.pressed("A") )
+    mesh.translateZ( -moveDistance );
+  if ( keyboard.pressed("D") )
+    mesh.translateZ(  moveDistance );
+  if ( keyboard.pressed("S") )
+    mesh.translateX( -moveDistance );
+  if ( keyboard.pressed("W") )
+    mesh.translateX(  moveDistance ); 
+
+  //rotate  left/right/up/down
+  var rotation_matrix = new THREE.Matrix4().identity();
+  if ( keyboard.pressed("left") )
+    mesh.rotateOnAxis( new THREE.Vector3(0,1,0), rotateAngle);
+  if ( keyboard.pressed("right") )
+    mesh.rotateOnAxis( new THREE.Vector3(0,1,0), -rotateAngle);
+  if ( keyboard.pressed("o") )
+    mesh.rotateOnAxis( new THREE.Vector3(1,0,0), rotateAngle);
+  if ( keyboard.pressed("p") )
+    mesh.rotateOnAxis( new THREE.Vector3(1,0,0), -rotateAngle);
+  if ( keyboard.pressed("Q") )
+    mesh.rotateOnAxis( new THREE.Vector3(0,0,1), rotateAngle);
+  if ( keyboard.pressed("E") )
+    mesh.rotateOnAxis( new THREE.Vector3(0,0,1), -rotateAngle);
+
+  if ( keyboard.pressed("Z") )
+  {
+    mesh.position.set(0,0,0);
+    mesh.rotation.set(0,0,0);
+  }
+
+  // global coordinates
+  /*if ( keyboard.pressed("R") )
+    mesh.position.x -= moveDistance;
+    if ( keyboard.pressed("F") )
+    mesh.position.x += moveDistance;
+    if ( keyboard.pressed("") )
+    mesh.position.z -= moveDistance;
+    if ( keyboard.pressed("") )
+    mesh.position.z += moveDistance;
+   */
+
+  if ( keyboard.pressed("down") ) mesh.position.y = mesh.position.y -1;
+  if ( keyboard.pressed("up") ) mesh.position.y = mesh.position.y +1;
+
+  controls.update();
+  stats.update();
+}
+
+function render()
+{
+  renderer.render(scene, camera);
+}
+
+</script>
+
+</body>
+</html>
