@@ -77,7 +77,7 @@ var camera, scene, renderer, keyboard;
 var geometry, material, mesh;
 
 //mesh variables
-var jworm, player1, sword1;
+var jworm, player1, player2, sword1, sword2;
 
 var cube;//for skybox
 
@@ -221,10 +221,28 @@ function init() {
       materials[i].shading = THREE.FlatShading;
       }
       var material = new THREE.MeshFaceMaterial({shading: THREE.FlatShading});
-      var  player1  = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
+
+      var material2 = new THREE.MeshPhongMaterial({shading: THREE.FlatShading});
+
+      player1  = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
+
+      player2  = new THREE.Mesh(geometry, material2);
+
       player1.scale.set(2, 2, 2);
+
+      player2.scale.set(2, 2, 2);
+
       player1.position.set(0, 0, 200);
+
+      player2.position.set(0, 0, 160);
+
       scene.add(player1);
+      camera.add(player1);
+      player1.position.z = -30;
+      player1.position.y = -10;
+
+      player2.rotation.y = 90;
+      scene.add(player2);
       });
 
   loader.load( 'models/sword1.js', function(geometry, materials){
@@ -299,11 +317,10 @@ function animate() {
   if( keyboard.pressed("O")) sword1.position.z = 2;
   if( keyboard.pressed("P")) sword1.position.z = 5;
 
-  if( keyboard.pressed("M")){
-    sword1.position.z -= 5;
-    sword1.rotation.x += 1;
-  }
-
+  if( keyboard.pressed("8"))    player2.position.z += 0.3;
+  if( keyboard.pressed("4"))  player2.position.x += 0.3;
+  if( keyboard.pressed("6"))  player2.position.z -= 0.3;
+  if( keyboard.pressed("5")) player2.position.x -= 0.3;
 
   controls.isOnObject( false );
 
